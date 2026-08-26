@@ -1,6 +1,6 @@
 # Implementation Plan: Library Management System Enhancements
 
-**Project:** Library Management System (Jira KEN)
+**Project:** Library Management System (Jira KAN)
 **Planning Date:** 2026-08-26
 **Planned by:** Planning Assistant
 **Status:** Proposed
@@ -23,12 +23,12 @@ This document outlines the implementation strategy for four approved epics (12 u
    - KAN-7: Overdue books list view
 
 2. **KAN-2: Search, Filter, Quick Find**
-   - KAN-7: Search books by title, author, or ISBN
-   - KAN-8`: Filter/Sort books list
-   - KAN-9: Search members by name/email
+   - KAN-17: Search books by title, author, or ISBN
+   - KAN-18: Filter/Sort books list
+   - KAN-19: Search members by name/email
 
 3. **KAN-3: Data Integrity & Business Rules**
-   - KAN-9: Prevent duplicate book ISBNs
+   - KAN-29: Prevent duplicate book ISBNs
    - KAN-30: Email validation for members
    - KAN-31: Circulation constraints (max books, no issue if overdue)
 
@@ -56,7 +56,7 @@ The following critical dependencies dictate our sequence:
 
 3. **Data Integrity:** KAN-29 (duplicate prevention) and KAN-30 (email validation) are independent but should be in place before KAN-31 (circulation constraints), as constraints assume clean, validated data.
 
-4. **Reporting Foundation***: KAN-41 (generate reports) must exist before KAN-42 (CSV export), which exports existing report data.
+4. **Reporting Foundation**: KAN-41 (generate reports) must exist before KAN-42 (CSV export), which exports existing report data.
 
 5. **Search Independence**: KAN-17, KAN-18, KAN-19 are largely independent of other epics but provide high user value, so they should be delivered early for quick wins.
 
@@ -157,17 +157,17 @@ Reporting is the final layer that consumes data from all prior epics. KAN-41 and
    - **Mitigation:** Deliver after all circulation features are stable. Include comprehensive test cases for boundary conditions.
 
 3. **KAN-42: CSV Export**
-   - **Risk:** Data formatting and encoding issues (e.g, special characters, unicode).
+   - **Risk:** Data formatting and encoding issues (e.g., special characters, unicode).
    - **Mitigation:** Use established CSV libraries, test with various data sets including edge cases.
 
 ### **Technical Considerations**
 
 1. **Database Schema Changes**
-   - KAN-5 will require schema modifications to the `circulation` table (now `transactions` in baseline) to add `due_date` and `return_date` columns.
+   - KAN-5 will require schema modifications to the `loans` table (existing baseline table) to add `due_date` and `return_date` columns.
    - Ensure migration scripts are prepared and tested.
 
 2. **API Extensions**
-   - New endpoints needed for search (KAN-17, 19, 19), renewals (KAN-6), overdue list (KAN-7), and reports (KAN-41, 43).
+   - New endpoints needed for search (KAN-17, KAN-18, KAN-19), renewals (KAN-6), overdue list (KAN-7), and reports (KAN-41, KAN-43).
    - Maintain consistent API design patterns with existing endpoints.
 
 3. **Frontend Updates**
@@ -175,8 +175,8 @@ Reporting is the final layer that consumes data from all prior epics. KAN-41 and
    - Maintain user experience consistency with existing interface.
 
 4. **Performance**
-   - Search features (KAN-17, 18, 19) may require database indexing for larger datasets.
-   - Reporting queries (KAN-41, 43) should be optimized to avoid performance degradation.
+   - Search features (KAN-17, KAN-18, KAN-19) may require database indexing for larger datasets.
+   - Reporting queries (KAN-41, KAN-43) should be optimized to avoid performance degradation.
 
 ---
 
@@ -186,7 +186,7 @@ Reporting is the final layer that consumes data from all prior epics. KAN-41 and
 2. **Implementation**: Developer Assistant to implement each story according to the design.
 3. **QA**: QA Assistant to verify each story meets acceptance criteria.
 4. **Documentation**: Documentation Assistant to update user guides and API documentation.
-5. **Retrospective**: Review each batch 's outcomes and adjust plan if needed.
+5. **Retrospective**: Review each batch's outcomes and adjust plan if needed.
 
 ---
 
