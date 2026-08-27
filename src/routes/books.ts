@@ -1,5 +1,6 @@
 import { Router, Request, Response } from 'express';
 import db from '../db/database';
+import { isDuplicateIsbn } from '../validators';
 
 const router = Router();
 
@@ -12,6 +13,10 @@ router.post('/', (req: Request, res: Response) => {
   const { title, author, isbn } = req.body as { title?: string; author?: string; isbn?: string };
   if (!title || !author || !isbn) {
     res.status(400).json({ error: 'Title, author, and ISBN are required' });
+    return;
+  }
+  if (isDuplicateIsbn(isbn)) {
+    res.status(409).json({ error: 'A book with this ISBN already exists.' });
     return;
   }
   const result = db.prepare(

@@ -20,6 +20,7 @@ interface Loan {
   author: string;
   name: string;
   issued_date: string;
+  due_date: string | null;
 }
 
 function escapeHtml(str: string): string {
@@ -125,7 +126,7 @@ async function loadLoans(): Promise<void> {
   container.innerHTML = `
     <table>
       <thead>
-        <tr><th>Book</th><th>Issued To</th><th>Issued Date</th><th>Action</th></tr>
+        <tr><th>Book</th><th>Issued To</th><th>Issued Date</th><th>Due Date</th><th>Action</th></tr>
       </thead>
       <tbody>
         ${loans.map(l => `
@@ -133,6 +134,7 @@ async function loadLoans(): Promise<void> {
             <td>${escapeHtml(l.title)}</td>
             <td>${escapeHtml(l.name)}</td>
             <td>${escapeHtml(l.issued_date)}</td>
+            <td>${l.due_date ? escapeHtml(l.due_date) : '—'}</td>
             <td><button class="return-btn" data-loan-id="${l.id}">Return</button></td>
           </tr>
         `).join('')}
@@ -168,6 +170,8 @@ function initForms(): void {
     const title = (document.getElementById('book-title') as HTMLInputElement).value.trim();
     const author = (document.getElementById('book-author') as HTMLInputElement).value.trim();
     const isbn = (document.getElementById('book-isbn') as HTMLInputElement).value.trim();
+    const bookError = document.getElementById('book-error') as HTMLSpanElement;
+    bookError.textContent = '';
 
     const res = await fetch('/api/books', {
       method: 'POST',
@@ -180,7 +184,7 @@ function initForms(): void {
       loadBooks();
     } else {
       const err = await res.json() as { error: string };
-      showMessage(err.error || 'Failed to add book.', true);
+      bookError.textContent = err.error || 'Failed to add book.';
     }
   });
 
@@ -189,6 +193,8 @@ function initForms(): void {
     const form = e.target as HTMLFormElement;
     const name = (document.getElementById('member-name') as HTMLInputElement).value.trim();
     const email = (document.getElementById('member-email') as HTMLInputElement).value.trim();
+    const memberError = document.getElementById('member-error') as HTMLSpanElement;
+    memberError.textContent = '';
 
     const res = await fetch('/api/members', {
       method: 'POST',
@@ -201,7 +207,7 @@ function initForms(): void {
       loadMembers();
     } else {
       const err = await res.json() as { error: string };
-      showMessage(err.error || 'Failed to add member.', true);
+      memberError.textContent = err.error || 'Failed to add member.';
     }
   });
 
@@ -221,7 +227,8 @@ function initForms(): void {
       body: JSON.stringify({ book_id, member_id })
     });
     if (res.ok) {
-      showMessage('Book issued successfully.');
+      const data = await res.json() as { message: string; due_date: string };
+      showMessage(`Book issued successfully. Due date: ${data.due_date}`);
       loadAvailableBooksSelect();
     } else {
       const err = await res.json() as { error: string };

@@ -1,11 +1,12 @@
 import { Router, Request, Response } from 'express';
 import db from '../db/database';
+import { calculateDueDate } from '../validators';
 
 const router = Router();
 
 router.get('/', (_req: Request, res: Response) => {
   const loans = db.prepare(`
-    SELECT l.id, l.issued_date,
+    SELECT l.id, l.issued_date, l.due_date,
            b.id AS book_id, b.title, b.author, b.isbn,
            m.id AS member_id, m.name, m.email
     FROM loans l
@@ -37,14 +38,16 @@ router.post('/issue', (req: Request, res: Response) => {
   }
 
   const issuedDate = new Date().toISOString().split('T')[0];
-  db.prepare('INSERT INTO loans (book_id, member_id, issued_date) VALUES (?, ?, ?)').run(
+  const dueDate = calculateDueDate(issuedDate);
+  db.prepare('INSERT INTO loans (book_id, member_id, issued_date, due_date) VALUES (?, ?, ?, ?)').run(
     book_id,
     member_id,
-    issuedDate
+    issuedDate,
+    dueDate
   );
   db.prepare('UPDATE books SET is_available = 0 WHERE id = ?').run(book_id);
 
-  res.status(201).json({ message: 'Book issued successfully' });
+  res.status(201).json({ message: 'Book issued successfully', due_date: dueDate });
 });
 
 router.post('/return', (req: Request, res: Response) => {
