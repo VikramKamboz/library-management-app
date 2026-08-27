@@ -210,3 +210,10 @@ tbody tr:hover td {
 .return-btn:hover {
   background: #9c4221;
 }
+
+.inline-error {
+  display: block;
+  color: #c53030;
+  font-size: 0.85rem;
+  margin-top: 0.25rem;
+}

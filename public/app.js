@@ -96,7 +96,7 @@ async function loadLoans() {
     container.innerHTML = `
     <table>
       <thead>
-        <tr><th>Book</th><th>Issued To</th><th>Issued Date</th><th>Action</th></tr>
+        <tr><th>Book</th><th>Issued To</th><th>Issued Date</th><th>Due Date</th><th>Action</th></tr>
       </thead>
       <tbody>
         ${loans.map(l => `
@@ -104,6 +104,7 @@ async function loadLoans() {
             <td>${escapeHtml(l.title)}</td>
             <td>${escapeHtml(l.name)}</td>
             <td>${escapeHtml(l.issued_date)}</td>
+            <td>${l.due_date ? escapeHtml(l.due_date) : '—'}</td>
             <td><button class="return-btn" data-loan-id="${l.id}">Return</button></td>
           </tr>
         `).join('')}
@@ -141,6 +142,8 @@ function initForms() {
         const title = document.getElementById('book-title').value.trim();
         const author = document.getElementById('book-author').value.trim();
         const isbn = document.getElementById('book-isbn').value.trim();
+        const bookError = document.getElementById('book-error');
+        bookError.textContent = '';
         const res = await fetch('/api/books', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -153,7 +156,7 @@ function initForms() {
         }
         else {
             const err = await res.json();
-            showMessage(err.error || 'Failed to add book.', true);
+            bookError.textContent = err.error || 'Failed to add book.';
         }
     });
     document.getElementById('add-member-form').addEventListener('submit', async (e) => {
@@ -161,6 +164,8 @@ function initForms() {
         const form = e.target;
         const name = document.getElementById('member-name').value.trim();
         const email = document.getElementById('member-email').value.trim();
+        const memberError = document.getElementById('member-error');
+        memberError.textContent = '';
         const res = await fetch('/api/members', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -173,7 +178,7 @@ function initForms() {
         }
         else {
             const err = await res.json();
-            showMessage(err.error || 'Failed to add member.', true);
+            memberError.textContent = err.error || 'Failed to add member.';
         }
     });
     document.getElementById('issue-form').addEventListener('submit', async (e) => {
@@ -190,7 +195,8 @@ function initForms() {
             body: JSON.stringify({ book_id, member_id })
         });
         if (res.ok) {
-            showMessage('Book issued successfully.');
+            const data = await res.json();
+            showMessage(`Book issued successfully. Due date: ${data.due_date}`);
             loadAvailableBooksSelect();
         }
         else {

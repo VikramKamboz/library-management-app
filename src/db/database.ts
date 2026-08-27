@@ -34,6 +34,22 @@ export function initializeDatabase(): void {
       FOREIGN KEY (member_id) REFERENCES members(id)
     )
   `);
+
+  // KAN-5: add due_date column if not present
+  const loanColumns = db.prepare('PRAGMA table_info(loans)').all() as Array<{ name: string }>;
+  if (!loanColumns.some(col => col.name === 'due_date')) {
+    db.exec('ALTER TABLE loans ADD COLUMN due_date TEXT');
+  }
+
+  // KAN-29: add unique index on books.isbn (skip if duplicates exist)
+  const duplicates = db.prepare(
+    'SELECT isbn FROM books GROUP BY isbn HAVING COUNT(*) > 1'
+  ).all();
+  if (duplicates.length > 0) {
+    console.warn('KAN-29: Duplicate ISBNs found — skipping unique index creation:', duplicates);
+  } else {
+    db.exec('CREATE UNIQUE INDEX IF NOT EXISTS idx_books_isbn_unique ON books(isbn)');
+  }
 }
 
 export default db;
