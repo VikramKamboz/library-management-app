@@ -1,7 +1,11 @@
 import { DatabaseSync } from 'node:sqlite';
 import path from 'path';
+import fs from 'fs';
 
-const dbPath = path.join(process.cwd(), 'library.db');
+const dbPath = process.env.LIBRARY_DB_PATH
+  || path.join(process.cwd(), 'data', 'library.db');
+
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new DatabaseSync(dbPath);
 
 export function initializeDatabase(): void {
