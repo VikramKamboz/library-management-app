@@ -6,11 +6,13 @@ This document outlines the implementation plan for **KAN-19: Search members by n
 
 **Story Description:** As a librarian, I want to search for members by name or email so that I can quickly find a member's record when they visit the library.
 
-**Baseline Context:**
-- The application currently has a "members" table in the SQLite database
+**Baseline Context:*
+- The application currently has a `members` table in the SQLite database with columns: `id`, `name`, `email`
 - Existing functionality: add/view members
 - Tech stack: Node.js + Express + TypeScript backend, SQLite (node:sqlite), plain HTML/CSS/vanilla TypeScript frontend
 - Port: 5050
+- Existing route: `/api/members` (GET all, POST create)
+- Existing validator: `isValidEmail` in `src/validators.ts`
 
 ---
 
@@ -23,7 +25,7 @@ Since this is a single story implementation, the sequence is straightforward:
 **Rationale:**
 - KAN-19 is a standalone feature that enhances the existing member management capability
 - It does not depend on any other pending stories
-- It only requires the existing "members" table, which is already part of the baseline application
+- It only requires the existing `members` table, which is already part of the baseline application
 - This feature provides immediate value to librarians by improving member lookup efficiency
 
 ---
@@ -31,8 +33,8 @@ Since this is a single story implementation, the sequence is straightforward:
 ## 2. Dependency Analysis
 
 **Pre-requisites:**
-- Existing "members" table in the database (✄ already exists in baseline)
-- Existing member view functionality (✄ already exists in baseline)
+- Existing `members` table in the database (with columns: `id`, `name`, `email`) ✄ already exists in baseline
+- Existing member view functionality (client: `loadMembers()`, server: `GET /api/members`) ✄ already exists in baseline
 
 **Dependencies on Other Stories:**
 - **None** - KAN-19 is independent of all other pending stories
@@ -41,8 +43,9 @@ Since this is a single story implementation, the sequence is straightforward:
 - **None** - No other stories in the backlog depend on member search functionality
 
 **Technical Dependencies:**
-- Requires confirmation from Design Assistant on the exact schema of the "members" table (field names for name and email)
 - No new database tables or schema changes required
+- No new packages or libraries needed
+- No changes to existing routes required (new route added to existing members router)
 
 ---
 
@@ -50,7 +53,7 @@ Since this is a single story implementation, the sequence is straightforward:
 
 Since this is a single story implementation, there is only one batch:
 
-### Batch 1: Member Search Functionality
+#### Batch 1: Member Search Functionality
 
 **Stories:**
 - KAN-19: Search members by name or email
@@ -59,18 +62,29 @@ Since this is a single story implementation, there is only one batch:
 This batch delivers a complete, testable, and deployable feature that enhances member management by allowing librarians to quickly find members using name or email search.
 
 **Deliverables:**
-1. Backend API endpoint for member search (GET request with query parameters)
-2. Database query logic to search members by name or email (using SQL LIKE or similar)
-3. Frontend UI component: search input field on the members page
-4. Frontend logic to call the search API and display filtered results
-5. Error handling for empty search results and API failures
-6. Unit and integration tests for the search functionality
+#### Backend (`SRC/routes/members.ts`)
+1. New GET endpoint: `GET /api/members/search?q={term}`
+2. SQL query using `LIKE` for case-insensitive partial matches on both `name` and email` columns
+3. Return empty array when no matches found
+4. Validate query parameter is provided (400 if missing)
+
+#### Frontend (`SRC/client/app.ts` and `public/index.html`)
+1. Add search input field to the members tab section
+2. Implement debounced input handler (300ms delay) to call search API
+3. Display filtered results in the existing members table
+4. Show "No members found" message when search returns empty
+5. Restore full list when search input is cleared
+
+#### Testing
+1. Unit tests for the search route handler
+2. Integration tests for the API endpoint
+3. Manual testing for UX and accessibility
 
 **Estimated Effort:**
 - Backend development: 2-3 hours
 - Frontend development: 2-3 hours
 - Testing: 1-2 hours
-- **Total: 5-8 hours**
+- __Total: 5-8 hours__
 
 ---
 
@@ -84,9 +98,8 @@ This batch delivers a complete, testable, and deployable feature that enhances m
 5. **Accessibility:** Ensure the search input has proper ARIA labels and keyboard navigation support
 
 **Technical Details to Confirm with Design Assistant:**
-- Exact field names in the "members" table for name and email
 - Whether to implement database indexes for optimized search performance
-- API endpoint naming convention (e.g., `/api/members/search`)
+- API endpoint naming convention (e.g., `/api/members/search` vs query param on `/api/members`)
 - Query parameter format (e.g., `?q=search_term` or `?name=search_term&email=search_term`)
 
 ---
@@ -131,8 +144,7 @@ KAN-19 is considered complete when:
 5. ✄ Unit and integration tests pass successfully
 6. ✄ Manual testing confirms the feature works as expected
 7. ✄ Code review is completed and approved
-8. ✄ Documentation is updated (API docs, user guide)
-9. ✄ Feature is merged to main branch and deployed
+8. ✄ Feature is merged to main branch and deployed
 
 ---
 
@@ -154,4 +166,4 @@ KAN-19 is a standalone, low-risk feature that enhances member management by addi
 **Plan Created By:** Planning Assistant  
 **Date:** 2026-09-02  
 **Project:** Library Management System Enhancement  
-**Jika Project Key:** KAN  
+**Jira Project Key:** KAN
