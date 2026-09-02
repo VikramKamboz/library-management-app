@@ -1,282 +1,157 @@
-# Implementation Plan: KAN-41 - Circulation Activity Report
+# Implementation Plan: KAN-19 - Search Members by Name or Email
 
 ## Overview
 
-This document outlines the implementation plan for story **KAN-41: Generate circulation activity report (issues/returns) for a date range**, which is part of Epic **KAN-4: Operational Reporting & exports**.
+This document outlines the implementation plan for **KAN-19: Search members by name or email**, which is part of Epic **KAN-2: Search, Filter, and Quick Find for books and members**.
+
+**Story Description:** As a librarian, I want to search for members by name or email so that I can quickly find a member's record when they visit the library.
+
+**Baseline Context:**
+- The application currently has a "members" table in the SQLite database
+- Existing functionality: add/view members
+- Tech stack: Node.js + Express + TypeScript backend, SQLite (node:sqlite), plain HTML/CSS/vanilla TypeScript frontend
+- Port: 5050
 
 ---
 
-## Story Details
+## 1. Implementation Sequence
 
-**Story ID:** KAN-41  
-**Epic:** KAN-4 - Operational Reporting & exports  
-**Title:** Generate circulation activity report (issues/returns) for a date range  
-**Description:** As a librarian, I need to generate a report of all book issues and returns within a specified date range, so I can analyze circulation patterns and library usage.
+Since this is a single story implementation, the sequence is straightforward:
 
----
-
-## Implementation Sequence
-
-This story is being implemented as a standalone feature based on user selection. It can be delivered independently of other stories in the backlog.
-
-### Sequence Rationale
-
-1. **Independent Delivery**: KAN-41 can be implemented without dependencies on other pending stories. It relies only on the existing baseline database schema (**books**, **members**, **loans** tables).
-2. **Immediate Business Value**: Provides librarians with immediate insight into circulation activity, enabling data-driven decision-making.
-3. **Foundation for Future Reporting**: Establishes the reporting pattern and UI for future reporting features (KAN-42, KAN-43).
-
----
-
-## Dependency Analysis
-
-### Prerequisites
-
-**Technical Prerequisites:**
-- Existing database schema with **loans** table (already in place)
-- The **loans** table must contain timestamp fields for issue and return dates (requires confirmation from Design Assistant)
-- Existing backend API structure (Node.js + Express + TypeScript)
-- Existing frontend structure (plain HTML/CSS/vanilla TypeScript)
-
-**Functional Prerequisites:**
-- Baseline features: issue book and return book functionality must be working (exists in baseline)
-- Historical loan data must be persisted in the **loans** table (assumed existing behavior)
-
-### Dependencies on Other Stories
-
-**No Blocking Dependencies**: KAN-41 does not depend on any other pending stories.
-
-**Optional Enhancements (future):**
-- **KAN-5 (due dates)**: If implemented, the report could include due date information.
-- **KAN-7 (overdue list)**: If implemented, the report could highlight overdue items within the date range.
-- **KAN-42 (CSV export)**: Could leverage the same data query logic for exporting circulation reports.
-
-### Dependent Stories
-
-**KAN-42 and KAN-43**: These stories may benefit from the reporting patterns and UI components established in KAN-41, but they are not strictly dependent on it.
-
----
-
-## Implementation Batching
-
-### Batch 1: Circulation Reporting (KAN-41)
-
-**Stories in Batch:**
-- KAN-41 - Generate circulation activity report (issues/returns) for a date range
+**Story to Implement:** KAN-19
 
 **Rationale:**
-This is a single-story batch based on user selection. It delivers immediate value by providing circulation insights and establishes the foundation for future reporting features.
+- KAN-19 is a standalone feature that enhances the existing member management capability
+- It does not depend on any other pending stories
+- It only requires the existing "members" table, which is already part of the baseline application
+- This feature provides immediate value to librarians by improving member lookup efficiency
 
 ---
 
-## Implementation Approach
+## 2. Dependency Analysis
 
-### Phase 1: Design & Schema Validation
+**Pre-requisites:**
+- Existing "members" table in the database (✄ already exists in baseline)
+- Existing member view functionality (✄ already exists in baseline)
 
-**Owner:** Design Assistant
+**Dependencies on Other Stories:**
+- **None** - KAN-19 is independent of all other pending stories
 
-**Activities:**
-1. Verify current **loans** table schema and confirm fields:
-   - `id` (primary key)
-   - `book_id` (foreign key to **books**)
-   - `member_id` (foreign key to **members**)
-   - `issue_date` (timestamp)
-   - `return_date` (timestamp, nullable)
-   - Any additional fields (status, due_date, etc.)
+**Stories Dependent on KAN-19:**
+- **None** - No other stories in the backlog depend on member search functionality
 
-2. Design API endpoint specification:
-   - `GET /api/reports/circulation`
-   - Query parameters: `start_date`, `end_date`
-   - Response format: JSON array of circulation records with book and member details
+**Technical Dependencies:**
+- Requires confirmation from Design Assistant on the exact schema of the "members" table (field names for name and email)
+- No new database tables or schema changes required
 
-3. Design UI components:
-   - Date range input fields (start date, end date)
-   - "Generate Report" button
-   - Report display table with columns:
-     - Book Title
-     - Member Name
-     - Issue Date
-     - Return Date (or "Still Issued")
-     - Action Type (Issued / Returned)
+---
+
+## 3. Logical Delivery Batches
+
+Since this is a single story implementation, there is only one batch:
+
+### Batch 1: Member Search Functionality
+
+**Stories:**
+- KAN-19: Search members by name or email
+
+**Rationale:**
+This batch delivers a complete, testable, and deployable feature that enhances member management by allowing librarians to quickly find members using name or email search.
 
 **Deliverables:**
-- Database schema confirmation document
-- API endpoint specification
-- UI mockups or wireframes
+1. Backend API endpoint for member search (GET request with query parameters)
+2. Database query logic to search members by name or email (using SQL LIKE or similar)
+3. Frontend UI component: search input field on the members page
+4. Frontend logic to call the search API and display filtered results
+5. Error handling for empty search results and API failures
+6. Unit and integration tests for the search functionality
+
+**Estimated Effort:**
+- Backend development: 2-3 hours
+- Frontend development: 2-3 hours
+- Testing: 1-2 hours
+- **Total: 5-8 hours**
 
 ---
 
-### Phase 2: Backend Development
+## 4. Implementation Notes
 
-**Owner:** Developer Assistant
+**Key Considerations:**
+1. **Search Behavior:** The search should be case-insensitive and support partial matches (e.g., searching "john" should find "John Doe")
+2. **Performance:** For large member lists, consider adding database indexes on name and email fields (Design Assistant to confirm)
+3. **UX:** Provide real-time search results as the user types (debounced to avoid excessive API calls)
+4. **Error Handling:** Display clear messages when no members are found or when the search fails
+5. **Accessibility:** Ensure the search input has proper ARIA labels and keyboard navigation support
 
-**Activities:**
-1. Implement database query logic:
-   - Query **loans** table filtered by date range (`issue_date` between `start_date` and `end_date`)
-   - Join with **books** table to get book details (title, author, ISBN)
-   - Join with **members** table to get member details (name, email)
-   - Order by `issue_date` (descending)
-
-2. Implement API endpoint:
-   - `GET /api/reports/circulation`
-   - Validate input parameters (date format, start date <= end date)
-   - Handle errors (invalid dates, database errors)
-   - Return JSON response with circulation data
-
-3. Add unit tests for:
-   - Date range validation
-   - Database query logic
-   - API endpoint response format
-
-**Deliverables:**
-- Backend API endpoint implementation
-- Unit tests with >=80% coverage
-- API documentation
+**Technical Details to Confirm with Design Assistant:**
+- Exact field names in the "members" table for name and email
+- Whether to implement database indexes for optimized search performance
+- API endpoint naming convention (e.g., `/api/members/search`)
+- Query parameter format (e.g., `?q=search_term` or `?name=search_term&email=search_term`)
 
 ---
 
-### Phase 3: Frontend Development
+## 5. Risk Assessment
 
-**Owner:** Developer Assistant
-
-**Activities:**
-1. Create new HTML page or section:
-   - `reports.html` or add to existing navigation
-   - Date input fields (start date, end date)
-   - "Generate Report" button
-   - Report display area (table)
-
-2. Implement TypeScript logic:
-   - Fetch data from `/api/reports/circulation` with date parameters
-   - Validate date inputs on client side
-   - Render report data in table format
-   - Handle empty results ("No circulation activity found for this date range")
-   - Handle errors (display error messages)
-
-3. Style with CSS:
-   - Consistent with existing application styling
-   - Responsive table design
-   - Clear visual hierarchy
-
-**Deliverables:**
-- Frontend UI implementation
-- Client-side validation and error handling
-- Responsive design
+**Low Risk:**
+- This is a low-risk feature that does not modify existing data or core functionality
+- It only adds a read-only search capability
+- No database schema changes required
+- Can be easily tested and rolled back if needed
 
 ---
 
-### Phase 4: Testing & Quality Assurance
+## 6. Testing Strategy
 
-**Owner:** QA Assistant
+**Unit Tests:**
+- Test backend search logic with various inputs (empty, partial, exact matches)
+- Test case-insensitive search behavior
+- Test error handling for invalid inputs
 
-**Activities:**
-1. Functional testing:
-   - Test report generation with various date ranges
-   - Verify data accuracy (compare with database records)
-   - Test edge cases:
-     - Empty date range (no circulation activity)
-     - Single-day date range
-     - Future date range
-     - Invalid date formats
-     - Start date > end date
+**Integration Tests:**
+- Test API endpoint with different query parameters
+- Test frontend-backend integration
+- Test search results display and empty state handling
 
-2. Integration testing:
-   - Verify integration with existing issue/return functionality
-   - Test with large datasets (performance)
-
-3. Usability testing:
-   - Verify UI is intuitive and easy to use
-   - Test on different browsers and screen sizes
-
-**Deliverables:**
-- Test cases and test results
-- Bug reports (if any)
-- Test coverage report
+**Manual Testing:**
+- Verify search functionality with real user scenarios
+- Test UX and performance with large datasets
+- Verify accessibility and keyboard navigation
 
 ---
 
-## Technical Considerations
+## 7. Definition of Done
 
-### Database Query Optimization
+KAN-19 is considered complete when:
 
-- Ensure indexes exist on `issue_date` and `return_date` fields in **loans** table for efficient date range queries
-- Consider pagination if reports can be very large (defer to Design Assistant)
-
-### Date Handling
-
-- Use ISO 8601 date format (YYYY-MM-DD) for API parameters
-- Handle timezone consistently (use UTC or local timezone)
-- Validate date inputs on both client and server
-
-### Error Handling
-
-- Return clear error messages for invalid inputs
-- Handle database errors gracefully
-- Log errors for debugging
-
-### Performance
-
-- Optimize database query with appropriate JOINs and indexes
-- Consider caching for frequently requested reports (optional)
+1. ✄ Backend API endpoint for member search is implemented and tested
+2. ✄ Database query logic supports case-insensitive partial matches on name and email
+3. ✄ Frontend search input and results display are implemented
+4. ✄ Error handling for empty results and API failures is in place
+5. ✄ Unit and integration tests pass successfully
+6. ✄ Manual testing confirms the feature works as expected
+7. ✄ Code review is completed and approved
+8. ✄ Documentation is updated (API docs, user guide)
+9. ✄ Feature is merged to main branch and deployed
 
 ---
 
-## Risks & Mitigation
+## 8. Next Steps
 
-| Risk | Impact | Mitigation Strategy |
-|------|------|--------------------|
-| **loans** table schema may not have required timestamp fields | High | Confirm schema with Design Assistant in Phase 1; if missing, add migration to add timestamp fields |
-| Large date ranges may cause performance issues | Medium | Implement pagination or result limits; test with large datasets in QA |
-| Date format inconsistencies between client and server | Low | Use ISO 8601 format consistently; validate on both sides |
-| Timezone handling issues | Low | Use UTC consistently or clearly document timezone assumptions |
+1. **Design Phase:** Design Assistant to confirm technical details (table schema, API design, indexing strategy)
+2. **Development Phase:** Developer Assistant to implement backend and frontend components
+3. **Testing Phase:** Testing Assistant to create and execute test cases
+4. **Review & Deployment:** Code review, merge, and deployment to production
 
 ---
 
-## Acceptance Criteria
+## 9. Summary
 
-**Story KAN-41 is considered complete when:**
-
-1. A new reporting page/option is available in the UI
-2. Users can input a start date and end date
-3. Clicking "Generate Report" displays a table of all book issues and returns within that date range
-4. The report includes:
-   - Book title
-   - Member name
-   - Issue date
-   - Return date (or indication that book is still issued)
-5. Invalid date inputs are handled gracefully with clear error messages
-6. Empty results are handled gracefully (e.g., "No circulation activity found")
-7. All unit tests pass with >=80% coverage
-8. All QA test cases pass
-9. Code is reviewed and merged to main branch
-10. Documentation is updated (API docs, user guide)
+KAN-19 is a standalone, low-risk feature that enhances member management by adding search capability. It has no dependencies on other pending stories and can be implemented immediately. The estimated effort is 5-8 hours, and the feature provides immediate value to librarians by improving member lookup efficiency.
 
 ---
 
-## Next Steps
-
-1. **Design Assistant**: Verify database schema and design API endpoint and UI components
-2. **Developer Assistant**: Implement backend and frontend components
-3. **QA Assistant**: Execute test plan and validate functionality
-4. **DevOps**: Deploy to production after QA approval
-
----
-
-## Appendix
-
-### Related Stories (Future Work)
-
-- **KAN-42**: Export books and members lists to CSV (could reuse reporting UI patterns)
-- **KAN-43**: View member borrowing summary (could leverage similar data query logic)
-- **KAN-5**: Add due dates to loans (would enhance report with due date information)
-- **KAN-7**: View overdue loans list (would enable highlighting overdue items in report)
-
-### Technical References
-
-- Baseline repository: `library-management-app`, `main` branch
-- Tech stack: Node.js, Express, TypeScript, SQLite, HTML/CSS/vanilla TypeScript
-- Port: 5050
-- Database tables: **books**, **members**, **loans**
-
----
-
-**End of Implementation Plan**
+**Plan Created By:** Planning Assistant  
+**Date:** 2026-09-02  
+**Project:** Library Management System Enhancement  
+**Jika Project Key:** KAN  
