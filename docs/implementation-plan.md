@@ -9,11 +9,13 @@ This document outlines the implementation plan for **KAN-19: Search members by n
 ### Baseline Context
 
 - The application currently has a `members` table in the SQLite database with columns: `id`, `name`, `email`
-- Existing functionality: add/view members
+- **Existing functionality:** add/view members
 - Tech stack: Node.js + Express + TypeScript backend, SQLite (node:sqlite), plain HTML/CSS/vanilla TypeScript frontend
 - Port: 5050
 - Existing route: `/api/members` (GET all, POST create)
 - Existing validator: `isValidEmail` in `src/validators.ts`
+- Existing client: `loadMembers()` function in `src/client/app.ts`, renders all members into a table
+- Existing HTML: `members` tab section with adding form and `members-list` div
 
 ---
 
@@ -65,19 +67,24 @@ This batch delivers a complete, testable, and deployable feature that enhances m
 **Deliverables:**
 
 #### Backend (`src/routes/members.ts`)
+
 1. New GET endpoint: `GET /api/members/search?q={term}`
 2. SQL query using `LIKE` for case-insensitive partial matches on both `name` and `email` columns
 3. Return empty array when no matches found
 4. Validate query parameter is provided (400 if missing)
+5. Trim whitespace from search term before querying
 
 #### Frontend (`src/client/app.ts` and `public/index.html`)
-1. Add search input field to the members tab section
+
+1. Add search input field to the members tab section (above the `members-list` div)
 2. Implement debounced input handler (300ms delay) to call search API
 3. Display filtered results in the existing members table
 4. Show "No members found" message when search returns empty
 5. Restore full list when search input is cleared
+6. Ensure the search input has proper ARIA labels and keyboard navigation support
 
 #### Testing
+
 1. Unit tests for the search route handler
 2. Integration tests for the API endpoint
 3. Manual testing for UX and accessibility
