@@ -23,6 +23,14 @@ interface Loan {
   due_date: string | null;
 }
 
+function debounce(fn: Function, delay: number): (...args: unknown[]) => void {
+  let timer: ReturnType<typeof setTimeout>;
+  return (...args) => {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn(...args), delay);
+  };
+}
+
 function escapeHtml(str: string): string {
   const div = document.createElement('div');
   div.appendChild(document.createTextNode(str));
@@ -64,12 +72,10 @@ async function loadBooks(): Promise<void> {
   `;
 }
 
-async function loadMembers(): Promise<void> {
-  const res = await fetch('/api/members');
-  const members = await res.json() as Member[];
+function renderMembersTable(members: Member[]): void {
   const container = document.getElementById('members-list') as HTMLDivElement;
   if (members.length === 0) {
-    container.innerHTML = '<p class="empty">No members added yet.</p>';
+    container.innerHTML = '<p class="empty">No members found.</p>';
     return;
   }
   container.innerHTML = `
@@ -87,6 +93,23 @@ async function loadMembers(): Promise<void> {
       </tbody>
     </table>
   `;
+}
+
+async function loadMembers(): Promise<void> {
+  const res = await fetch('/api/members');
+  const members = await res.json() as Member[];
+  renderMembersTable(members);
+}
+
+async function searchMembers(query: string): Promise<void> {
+  const trimmed = query.trim();
+  if (!trimmed) {
+    loadMembers();
+    return;
+  }
+  const res = await fetch(`/api/members/search?q=${encodeURIComponent(trimmed)}`);
+  const members = await res.json() as Member[];
+  renderMembersTable(members);
 }
 
 async function loadAvailableBooksSelect(): Promise<void> {
@@ -260,4 +283,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initTabs();
   initForms();
   loadBooks();
+
+  const searchInput = document.getElementById('member-search') as HTMLInputElement;
+  searchInput.addEventListener('input', debounce((e: Event) => {
+    const target = e.target as HTMLInputElement;
+    searchMembers(target.value);
+  }, 300));
 });
