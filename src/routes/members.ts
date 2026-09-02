@@ -4,6 +4,18 @@ import { isValidEmail } from '../validators';
 
 const router = Router();
 
+router.get('/search', (req: Request, res: Response) => {
+  const q = (req.query.q as string | undefined)?.trim();
+  if (!q) {
+    res.status(400).json({ error: "Query parameter 'q' is required" });
+    return;
+  }
+  const members = db.prepare(
+    'SELECT id, name, email FROM members WHERE name LIKE ? OR email LIKE ? ORDER BY id ASC'
+  ).all(`%${q}%`, `%${q}%`);
+  res.json(members);
+});
+
 router.get('/', (_req: Request, res: Response) => {
   const members = db.prepare('SELECT * FROM members ORDER BY id ASC').all();
   res.json(members);
