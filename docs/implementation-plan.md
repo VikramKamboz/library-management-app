@@ -1,4 +1,4 @@
-# Implementation Plan: KAN-19 - Search Members by Name or Email
+# Implementation Plan: KAN-19 — Search Members by Name or Email
 
 ## Overview
 
@@ -6,7 +6,8 @@ This document outlines the implementation plan for **KAN-19: Search members by n
 
 **Story Description:** As a librarian, I want to search for members by name or email so that I can quickly find a member's record when they visit the library.
 
-**Baseline Context:*
+### Baseline Context
+
 - The application currently has a `members` table in the SQLite database with columns: `id`, `name`, `email`
 - Existing functionality: add/view members
 - Tech stack: Node.js + Express + TypeScript backend, SQLite (node:sqlite), plain HTML/CSS/vanilla TypeScript frontend
@@ -33,14 +34,14 @@ Since this is a single story implementation, the sequence is straightforward:
 ## 2. Dependency Analysis
 
 **Pre-requisites:**
-- Existing `members` table in the database (with columns: `id`, `name`, `email`) ✄ already exists in baseline
-- Existing member view functionality (client: `loadMembers()`, server: `GET /api/members`) ✄ already exists in baseline
+- Existing `members` table in the database (with columns: `id`, `name`, `email`) — already exists in baseline
+- Existing member view functionality (client: `loadMembers()`, server: `GET /api/members`) — already exists in baseline
 
 **Dependencies on Other Stories:**
-- **None** - KAN-19 is independent of all other pending stories
+- **None** — KAN-19 is independent of all other pending stories
 
 **Stories Dependent on KAN-19:**
-- **None** - No other stories in the backlog depend on member search functionality
+- **None** — No other stories in the backlog depend on member search functionality
 
 **Technical Dependencies:**
 - No new database tables or schema changes required
@@ -53,7 +54,7 @@ Since this is a single story implementation, the sequence is straightforward:
 
 Since this is a single story implementation, there is only one batch:
 
-#### Batch 1: Member Search Functionality
+### Batch 1: Member Search Functionality
 
 **Stories:**
 - KAN-19: Search members by name or email
@@ -62,13 +63,14 @@ Since this is a single story implementation, there is only one batch:
 This batch delivers a complete, testable, and deployable feature that enhances member management by allowing librarians to quickly find members using name or email search.
 
 **Deliverables:**
-#### Backend (`SRC/routes/members.ts`)
+
+#### Backend (`src/routes/members.ts`)
 1. New GET endpoint: `GET /api/members/search?q={term}`
-2. SQL query using `LIKE` for case-insensitive partial matches on both `name` and email` columns
+2. SQL query using `LIKE` for case-insensitive partial matches on both `name` and `email` columns
 3. Return empty array when no matches found
 4. Validate query parameter is provided (400 if missing)
 
-#### Frontend (`SRC/client/app.ts` and `public/index.html`)
+#### Frontend (`src/client/app.ts` and `public/index.html`)
 1. Add search input field to the members tab section
 2. Implement debounced input handler (300ms delay) to call search API
 3. Display filtered results in the existing members table
@@ -84,7 +86,7 @@ This batch delivers a complete, testable, and deployable feature that enhances m
 - Backend development: 2-3 hours
 - Frontend development: 2-3 hours
 - Testing: 1-2 hours
-- __Total: 5-8 hours__
+- **Total: 5-8 hours**
 
 ---
 
@@ -137,14 +139,14 @@ This batch delivers a complete, testable, and deployable feature that enhances m
 
 KAN-19 is considered complete when:
 
-1. ✄ Backend API endpoint for member search is implemented and tested
-2. ✄ Database query logic supports case-insensitive partial matches on name and email
-3. ✄ Frontend search input and results display are implemented
-4. ✄ Error handling for empty results and API failures is in place
-5. ✄ Unit and integration tests pass successfully
-6. ✄ Manual testing confirms the feature works as expected
-7. ✄ Code review is completed and approved
-8. ✄ Feature is merged to main branch and deployed
+1. Backend API endpoint for member search is implemented and tested
+2. Database query logic supports case-insensitive partial matches on name and email
+3. Frontend search input and results display are implemented
+4. Error handling for empty results and API failures is in place
+5. Unit and integration tests pass successfully
+6. Manual testing confirms the feature works as expected
+7. Code review is completed and approved
+8. Feature is merged to main branch and deployed
 
 ---
 
