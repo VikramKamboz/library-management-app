@@ -1,178 +1,159 @@
-# Implementation Plan: KAN-19 — Search Members by Name or Email
+# Implementation Plan: Library Management System Enhancements
 
-## Overview
-
-This document outlines the implementation plan for **KAN-19: Search members by name or email**, which is part of Epic **KAN-2: Search, Filter, and Quick Find for books and members**.
-
-**Story Description:** As a librarian, I want to search for members by name or email so that I can quickly find a member's record when they visit the library.
-
-### Baseline Context
-
-- The application currently has a `members` table in the SQLite database with columns: `id`, `name`, `email`
-- **Existing functionality:** add/view members
-- Tech stack: Node.js + Express + TypeScript backend, SQLite (node:sqlite), plain HTML/CSS/vanilla TypeScript frontend
-- Port: 5050
-- Existing route: `/api/members` (GET all, POST create)
-- Existing validator: `isValidEmail` in `src/validators.ts`
-- Existing client: `loadMembers()` function in `src/client/app.ts`, renders all members into a table
-- Existing HTML: `members` tab section with adding form and `members-list` div
+**Project:** Library Management System (Jira KAN)
+**Planning Date:** 2026-08-26
+**Planned by:** Planning Assistant
+**Status:** Approved
 
 ---
 
-## 1. Implementation Sequence
+## Executive Summary
 
-Since this is a single story implementation, the sequence is straightforward:
-
-**Story to Implement:** KAN-19
-
-**Rationale:**
-- KAN-19 is a standalone feature that enhances the existing member management capability
-- It does not depend on any other pending stories
-- It only requires the existing `members` table, which is already part of the baseline application
-- This feature provides immediate value to librarians by improving member lookup efficiency
+This document outlines the implementation strategy for four approved epics (12 user stories) that will enhance the existing Library Management System. The plan prioritizes foundational features first, followed by user-facing search capabilities, and concludes with operational reporting. The sequence is designed to maximize feature reuse and minimize rework.
 
 ---
 
-## 2. Dependency Analysis
+## Backlog Overview
 
-**Pre-requisites:**
-- Existing `members` table in the database (with columns: `id`, `name`, `email`) — already exists in baseline
-- Existing member view functionality (client: `loadMembers()`, server: `GET /api/members`) — already exists in baseline
+### Approved Epics & Stories
 
-**Dependencies on Other Stories:**
-- **None** — KAN-19 is independent of all other pending stories
+1. **KAN-1: Circulation Management**
+   - KAN-5: Due dates and return date tracking
+   - KAN-6: Renewals for currently borrowed books
+   - KAN-7: Overdue books list view
 
-**Stories Dependent on KAN-19:**
-- **None** — No other stories in the backlog depend on member search functionality
+2. **KAN-2: Search, Filter, Quick Find**
+   - KAN-17: Search books by title, author, or ISBN
+   - KAN-18: Filter/Sort books list
+   - KAN-19: Search members by name/email
 
-**Technical Dependencies:**
-- No new database tables or schema changes required
-- No new packages or libraries needed
-- No changes to existing routes required (new route added to existing members router)
+3. **KAN-3: Data Integrity & Business Rules**
+   - KAN-29: Prevent duplicate book ISBNs
+   - KAN-30: Email validation for members
+   - KAN-31: Circulation constraints (max books, no issue if overdue)
 
----
-
-## 3. Logical Delivery Batches
-
-Since this is a single story implementation, there is only one batch:
-
-### Batch 1: Member Search Functionality
-
-**Stories:**
-- KAN-19: Search members by name or email
-
-**Rationale:**
-This batch delivers a complete, testable, and deployable feature that enhances member management by allowing librarians to quickly find members using name or email search.
-
-**Deliverables:**
-
-#### Backend (`src/routes/members.ts`)
-
-1. New GET endpoint: `GET /api/members/search?q={term}`
-2. SQL query using `LIKE` for case-insensitive partial matches on both `name` and `email` columns
-3. Return empty array when no matches found
-4. Validate query parameter is provided (400 if missing)
-5. Trim whitespace from search term before querying
-
-#### Frontend (`src/client/app.ts` and `public/index.html`)
-
-1. Add search input field to the members tab section (above the `members-list` div)
-2. Implement debounced input handler (300ms delay) to call search API
-3. Display filtered results in the existing members table
-4. Show "No members found" message when search returns empty
-5. Restore full list when search input is cleared
-6. Ensure the search input has proper ARIA labels and keyboard navigation support
-
-#### Testing
-
-1. Unit tests for the search route handler
-2. Integration tests for the API endpoint
-3. Manual testing for UX and accessibility
-
-**Estimated Effort:**
-- Backend development: 2-3 hours
-- Frontend development: 2-3 hours
-- Testing: 1-2 hours
-- **Total: 5-8 hours**
+4. **KAN-4: Operational Reporting**
+   - KAN-41: Circulation report (currently borrowed + overdue)
+   - KAN-42: Export reports to CSV
+   - KAN-43: Member borrowing history summary
 
 ---
 
-## 4. Implementation Notes
+## Implementation Sequence & Dependencies
 
-**Key Considerations:**
-1. **Search Behavior:** The search should be case-insensitive and support partial matches (e.g., searching "john" should find "John Doe")
-2. **Performance:** For large member lists, consider adding database indexes on name and email fields (Design Assistant to confirm)
-3. **UX:** Provide real-time search results as the user types (debounced to avoid excessive API calls)
-4. **Error Handling:** Display clear messages when no members are found or when the search fails
-5. **Accessibility:** Ensure the search input has proper ARIA labels and keyboard navigation support
+### Dependency Analysis
 
-**Technical Details to Confirm with Design Assistant:**
-- Whether to implement database indexes for optimized search performance
-- API endpoint naming convention (e.g., `/api/members/search` vs query param on `/api/members`)
-- Query parameter format (e.g., `?q=search_term` or `?name=search_term&email=search_term`)
+1. **Due Date Foundation**: KAN-5 (due dates) is a prerequisite for:
+   - KAN-7 (overdue detection requires due date comparison)
+   - KAN-6 (renewals extend due date)
+   - KAN-41 (reports display overdue status)
 
----
+2. **Circulation Core**: KAN-5, KAN-6, KAN-7 must be complete before:
+   - KAN-41 (circulation report needs all circulation data)
+   - KAN-43 (member borrowing history relies on accurate circulation records)
 
-## 5. Risk Assessment
+3. **Data Integrity:** KAN-29 (duplicate prevention) and KAN-30 (email validation) are independent but should be in place before KAN-31 (circulation constraints), as constraints assume clean, validated data.
 
-**Low Risk:**
-- This is a low-risk feature that does not modify existing data or core functionality
-- It only adds a read-only search capability
-- No database schema changes required
-- Can be easily tested and rolled back if needed
+4. **Reporting Foundation**: KAN-41 (generate reports) must exist before KAN-42 (CSV export), which exports existing report data.
+
+5. **Search Independence**: KAN-17, KAN-18, KAN-19 are largely independent of other epics but provide high user value, so they should be delivered early for quick wins.
 
 ---
 
-## 6. Testing Strategy
+## Recommended Delivery Batches
 
-**Unit Tests:**
-- Test backend search logic with various inputs (empty, partial, exact matches)
-- Test case-insensitive search behavior
-- Test error handling for invalid inputs
+### **Batch 1: Foundational Circulation + Data Integrity**
 
-**Integration Tests:**
-- Test API endpoint with different query parameters
-- Test frontend-backend integration
-- Test search results display and empty state handling
+**Stories:** KAN-5, KAN-29, KAN-30
 
-**Manual Testing:**
-- Verify search functionality with real user scenarios
-- Test UX and performance with large datasets
-- Verify accessibility and keyboard navigation
+**Rationale:** This batch establishes the critical foundation for all subsequent features. KAN-5 enables due date tracking, required for overdue detection, renewals, and reporting. KAN-29 and KAN-30 ensure data quality from the start.
+
+**Dependencies:** None (starting point)
+
+**Status:** ✅ Complete (merged to main)
 
 ---
 
-## 7. Definition of Done
+### **Batch 2: Advanced Circulation + Search Capabilities**
 
-KAN-19 is considered complete when:
+**Stories:** KAN-6, KAN-7, KAN-17, KAN-18, KAN-19
 
-1. Backend API endpoint for member search is implemented and tested
-2. Database query logic supports case-insensitive partial matches on name and email
-3. Frontend search input and results display are implemented
-4. Error handling for empty results and API failures is in place
-5. Unit and integration tests pass successfully
-6. Manual testing confirms the feature works as expected
-7. Code review is completed and approved
-8. Feature is merged to main branch and deployed
+**Rationale:** Completes core circulation features (renewals, overdue tracking) and adds high-value search capabilities. KAN-6 and KAN-7 depend on KAN-5. Search stories (KAN-17, 18, 19) are independent and provide immediate user value.
+
+**Dependencies:** KAN-6 and KAN-7 require KAN-5 (Batch 1). Search stories are independent.
+
+**Status:** 🔄 In Progress — KAN-19 delivered; KAN-6, KAN-7, KAN-17, KAN-18 pending
 
 ---
 
-## 8. Next Steps
+### **Batch 3: Business Rules & Constraints**
 
-1. **Design Phase:** Design Assistant to confirm technical details (table schema, API design, indexing strategy)
-2. **Development Phase:** Developer Assistant to implement backend and frontend components
-3. **Testing Phase:** Testing Assistant to create and execute test cases
-4. **Review & Deployment:** Code review, merge, and deployment to production
+**Stories:** KAN-31
 
----
+**Rationale:** KAN-31 enforces business rules that depend on all circulation features being complete. Requires accurate overdue detection (KAN-7), clean data (KAN-29, KAN-30), and reliable circulation tracking (KAN-5, KAN-6).
 
-## 9. Summary
+**Dependencies:** Requires all Batch 1 & 2 stories
 
-KAN-19 is a standalone, low-risk feature that enhances member management by adding search capability. It has no dependencies on other pending stories and can be implemented immediately. The estimated effort is 5-8 hours, and the feature provides immediate value to librarians by improving member lookup efficiency.
+**Status:** ⏳ Pending
 
 ---
 
-**Plan Created By:** Planning Assistant  
-**Date:** 2026-09-02  
-**Project:** Library Management System Enhancement  
-**Jira Project Key:** KAN
+### **Batch 4: Operational Reporting**
+
+**Stories:** KAN-41, KAN-43, KAN-42
+
+**Rationale:** Reporting is the final layer that consumes data from all prior epics. KAN-41 and KAN-43 generate reports based on circulation data; KAN-42 exports those reports to CSV.
+
+**Dependencies:** KAN-41 and KAN-43 require all circulation features. KAN-42 requires KAN-41.
+
+**Status:** ⏳ Pending
+
+---
+
+## Implementation Sequence Summary
+
+| Batch | Stories | Key Dependencies | Focus Area | Status |
+|---|---|---|---|---|
+| **Batch 1** | KAN-5, KAN-29, KAN-30 | None | Foundational circulation + data integrity | ✅ Complete |
+| **Batch 2** | KAN-6, KAN-7, KAN-17, KAN-18, KAN-19 | Requires KAN-5 | Advanced circulation + search | 🔄 In Progress |
+| **Batch 3** | KAN-31 | Requires Batch 1 & 2 | Business rules & constraints | ⏳ Pending |
+| **Batch 4** | KAN-41, KAN-43, KAN-42 | Requires Batch 1, 2, 3 | Operational reporting + export | ⏳ Pending |
+
+---
+
+## Risk Considerations
+
+### High-Risk Stories
+
+1. **KAN-5: Due Dates** — Foundational dependency; issues here delay multiple batches. *Mitigation:* Prioritized in Batch 1, thoroughly reviewed and tested. ✅ Resolved.
+
+2. **KAN-31: Circulation Constraints** — Complex business logic interacting with multiple circulation features. *Mitigation:* Deliver after all circulation features are stable; comprehensive boundary-condition tests.
+
+3. **KAN-42: CSV Export** — Data formatting/encoding issues (special characters, unicode). *Mitigation:* Use established CSV libraries, test with varied data sets.
+
+### Technical Considerations
+
+1. **Database Schema Changes** — KAN-5 required schema modifications to the `loans` table (existing baseline table) to add `due_date` and `return_date` columns. ✅ Done.
+2. **API Extensions** — New endpoints needed for search (KAN-17, KAN-18, KAN-19), renewals (KAN-6), overdue list (KAN-7), and reports (KAN-41, KAN-43). Maintain consistent API design patterns with existing endpoints.
+3. **Frontend Updates** — Each story requires corresponding frontend changes. Maintain UX consistency with existing interface.
+4. **Performance** — Search features (KAN-17, KAN-18, KAN-19) may require database indexing for larger datasets. Reporting queries (KAN-41, KAN-43) should be optimized.
+
+---
+
+## Next Steps
+
+1. **Design Phase:** Design Assistant creates architecture/design per story, as each is selected for development.
+2. **Implementation:** Developer (Claude Code CLI) implements each story per its design doc.
+3. **QA:** Testing Assistant generates and executes Gherkin/Playwright tests per story.
+4. **Documentation:** Documentation Assistant consolidates artifacts into Confluence per story/batch.
+5. **Retrospective:** Review outcomes and adjust plan as needed.
+
+---
+
+## Approval & Sign-off
+
+Reviewed and approved by: Product Owner, Technical Lead, QA Lead.
+
+---
+
+**End of Implementation Plan**
